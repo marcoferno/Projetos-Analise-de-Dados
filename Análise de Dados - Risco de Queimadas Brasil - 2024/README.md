@@ -116,7 +116,7 @@
 
 Este gráfico apresenta uma previsão do risco de incêndio para o último trimestre de 2024, mostrando tanto uma série histórica quanto uma projeção para os próximos meses.<br>
 
-<br>Análise Conclusiva<br>
+<br>Análise Conclusiva para o 4º Trimestre<br>
 
 Série Histórica: A linha azul, representando a série histórica, indica uma tendência crescente no risco de incêndio ao longo de 2024. Observa-se que o risco de incêndio começou em torno de 30% no início do ano, com picos e quedas ao longo dos meses, mas houve um aumento consistente ao longo do período analisado, atingindo aproximadamente 80% ao final do terceiro trimestre.
 
