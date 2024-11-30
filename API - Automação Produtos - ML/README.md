@@ -47,6 +47,7 @@
   Armazenamento em Planilha: Os dados são organizados automaticamente em abas específicas do Google Sheets.</p>
   
   ![Retorno Info](https://github.com/user-attachments/assets/4459a764-4fba-441f-b55c-745496f1112c)
+  
   ![Taxas](https://github.com/user-attachments/assets/9657d218-eaaf-4a09-83fb-eb38fb6b58ed)
 
   ###
