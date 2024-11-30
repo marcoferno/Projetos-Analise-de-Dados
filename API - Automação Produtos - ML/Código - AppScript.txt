@@ -1,0 +1,159 @@
+//CRIAÇÃO DO APP E PEGANDO A PLANILHA UTILIZADA COM APPSCRIPT
+let app = SpreadsheetApp;
+let planilhas = SpreadsheetApp.getActiveSpreadsheet();
+
+//CONEXÃO COM AS ABAS DAS PLANILHAS
+let sheettoken = planilhas.getSheetByName("Token");
+let sheetAnuncio = planilhas.getSheetByName("Anúncios");
+let sheetValores = planilhas.getSheetByName("Valores");
+let sheetPreco = planilhas.getSheetByName("Preços");
+
+//DECLARAÇÃO DE VARIÁVEIS E CONEXÃO COM DADOS DO API DO ML
+let clienteId = 'SEU ID CLIENTE';
+let chavesecreta = 'SUA CHAVE SECRETA';
+let codigoautorizacao = 'SUA CHAVE DE AUTORIZAÇÃO';
+let uriredirecionado = 'SUA URI';
+let tokenurl = 'SEU TOKEN URL';
+
+//--------------------------------------------------------------------------
+
+// FUNÇÃO AUXILIAR PARA CONFIGURAR OPÇÕES DE REQUISIÇÃO
+function configurarOpcoes(method, payload) {
+  return {
+    'method': method,
+    'payload': payload,
+    'muteHttpExceptions': true,
+    'headers': {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  };
+}
+
+//--------------------------------------------------------------------------
+
+//FUNÇÃO DE ATUALIZAÇÃO DE TOKEN
+function atualizarToken() {
+//CRIAÇÃO DO CURL DO API
+  let payload = {
+    'grant_type': 'refresh_token',
+    'client_id': clienteId,
+    'client_secret': chavesecreta,
+    'refresh_token': 'SEU REFRESH TOKEN'
+  };
+
+  let options = {
+    'method': 'post',
+    'payload': payload,
+    'muteHttpExceptions': true,
+    'headers': {
+      'accept': 'application/json',
+      'content-type': 'application/x-www-form-urlencoded'
+    }
+  };
+
+//--------------------------------------------------------------------------
+
+//CHAMANDO COMANDO E OBTENDO RESPOSTAS
+  try {
+    let response = UrlFetchApp.fetch(tokenurl, options);
+    let json = JSON.parse(response.getContentText());
+    
+    if (response.getResponseCode() == 200) {
+      Logger.log("Token atualizado com sucesso: " + json.access_token);
+      sheettoken = planilhas.getSheetByName("Token");
+      sheettoken.getRange("A2").setValue(json.access_token); // Token de Acesso
+      sheettoken.getRange("B2").setValue(json.refresh_token); // Refresh Token
+    } else {
+      // Houve um problema na solicitação
+      Logger.log("Falha ao atualizar o token: " + json);
+    }
+  } catch (error) {
+    Logger.log("Erro ao atualizar o token: " + error.toString());
+  }
+}
+
+//--------------------------------------------------------------------------
+
+//FUNÇÃO DE PEGAR DADOS DO PRODUTO PESQUISADO
+function obterproduto() {
+  //CRIAÇÃO DO CURL DO API
+  let options = {'Authorization' : 'Bearer' + atualizarToken(), 'method' : 'get'};
+  
+  try{
+    //CRIANDO COMANDO DE BUSCA DO API  
+    let response = UrlFetchApp.fetch('https://api.mercadolibre.com/sites/MLB/search?q=' + sheetAnuncio.getRange('B1').getValue(), options);
+    if (response.getResponseCode() != 200) {
+    console.error('Erro ao buscar produtos: ' + response.getContentText());
+    return;  
+    }
+    let json =JSON.parse(response.getContentText());
+
+    //PASSANDO OS DADOS DA BUSCA PARA A PLANILHA "BPET"
+    let anuncios = json.results;
+    let linhainicial = 3;
+    
+    //PASSANDO DADOS DO API PARA A PLANILHA COM UM LOOP (FOR)
+    for (let i = 0; i < anuncios.length; i++) {
+      let linhaAtual = linhainicial + i
+      let anuncio = anuncios[i];
+
+      sheetAnuncio.getRange('A' + linhaAtual).setValue(anuncio.permalink);
+      sheetAnuncio.getRange('B' + linhaAtual).setValue(anuncio.id);
+      sheetAnuncio.getRange('C' + linhaAtual).setValue(anuncio.category_id);
+      sheetAnuncio.getRange('D' + linhaAtual).setValue(anuncio.title);
+      sheetAnuncio.getRange('G' + linhaAtual).setValue(anuncio.listing_type_id);
+      sheetAnuncio.getRange('I' + linhaAtual).setValue(anuncio.catalog_product_id);
+      sheetAnuncio.getRange('K' + linhaAtual).setValue(anuncio.price);
+      sheetAnuncio.getRange('P' + linhaAtual).setValue(anuncio.available_quantity);
+
+      //CRIANDO COMANDO DE BUSCA DO API (2) 
+      let response2 = UrlFetchApp.fetch('https://api.mercadolibre.com/sites/MLB/listing_prices?price=' + anuncio.price +'&listing_type_id=' + anuncio.listing_type_id +'&category_id=' + anuncio.category_id, options);
+      if (response2.getResponseCode() != 200) {  
+        console.error('Erro ao buscar opções de envio: ' + response2.getContentText());
+        return;
+      }
+
+      let json2 = JSON.parse(response2.getContentText());
+      
+      let tx = json2.sale_fee_details;
+
+      //PASSANDO DADOS DA API (2) PARA A PLANILHA COM UM LOOP (FOR)
+      if (json2.sale_fee_details) {  
+        sheetAnuncio.getRange('E' + linhaAtual).setValue(json2.listing_exposure);
+        sheetAnuncio.getRange('L' + linhaAtual).setValue(json2.sale_fee_amount);
+        sheetAnuncio.getRange('M' + linhaAtual).setValue(tx.gross_amount);
+        sheetAnuncio.getRange('N' + linhaAtual).setValue(tx.percentage_fee); 
+      } 
+      
+      //TRATAMENTO DE ERROS PARA POSSÍVEIS DADOS NÃO ACHADOS E RESPOSTA INVÁLIDA DO API
+      try{
+
+        //CRIANDO COMANDO DE BUSCA DO API (3) 
+        let response3 =  UrlFetchApp.fetch('https://api.mercadolibre.com/items/' + anuncio.id + '/shipping_options?zip_code=' + sheetAnuncio.getRange('D1').getValue(), options)
+        //TRATAMENTO DE ERROS PARA POSSÍVEIS RESPOSTAS INVÁLIDAS DO API
+        if (response3.getResponseCode() != 200) {  
+          console.error('Erro ao buscar opções de envio: ' + response3.getContentText());
+          sheetAnuncio.getRange('O' + linhaAtual).setValue("Sem informações de envio");
+          continue;
+          }
+        let json3 = JSON.parse(response3.getContentText());
+        
+        let fr = json3.options[0];
+
+        //PASSANDO DADOS DA API (3) PARA A PLANILHA COM UM LOOP (FOR)
+        if (json3.options && json3.options.length > 0) {
+          sheetAnuncio.getRange('O' + linhaAtual).setValue(fr.list_cost);
+        } else {
+          sheetAnuncio.getRange('O' + linhaAtual).setValue("Sem informações de envio");
+        }
+      } catch (error) {
+        console.error('Erro ao processar opções de envio para o anúncio: ' + anuncio.id + ', erro: ' + error.toString());
+        sheetAnuncio.getRange('O' + linhaAtual).setValue("Opção de envio não listada pelo vendedor");
+      }
+    }
+
+  } catch (error) {
+    console.error('Erro ao executar obterproduto: ' + error.toString());
+  }
+}
