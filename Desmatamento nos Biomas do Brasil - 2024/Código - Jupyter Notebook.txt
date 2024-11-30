@@ -1,0 +1,214 @@
+#Importações das Bibliotecas
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statsmodels.api as sm
+from scipy.stats import pearsonr
+
+#Leitura de Arquivos e informações da planilha
+arquivo_desmatamento = 'Desmatamento_Brasil_2024.xlsx'
+Dataframe1 = pd.read_excel(arquivo_desmatamento)
+Dataframe1.info()
+Dataframe1.shape
+
+#Criando uma cópia do DataFrame original
+Dataframe1_limpo = Dataframe1.copy()  
+
+# Preenchendo os valores nulos nas colunas numéricas com mediana
+Dataframe1_limpo['(Média) FRP'].fillna(Dataframe1_limpo['(Média) FRP'].median(), inplace=True)
+
+# Preenchendo a colunas categóricas com moda
+Dataframe1_limpo['Bioma'].fillna(Dataframe1_limpo['Bioma'].mode()[0], inplace=True)
+
+# Verificando se os valores nulos foram preenchidos
+print(Dataframe1_limpo.isnull().sum())
+
+# Object para datatime
+Dataframe1_limpo['Data'] = pd.to_datetime(Dataframe1_limpo['Data'], format='%Y-%m-%d', errors='coerce')
+
+# Verificando o resultado
+print(Dataframe1_limpo['Data'].head())
+
+# Tirando distribuições
+sns.set(style="whitegrid")
+
+# Distribuição dos dias sem chuva
+plt.figure(figsize=(10, 6))
+sns.histplot(Dataframe1_limpo['(Média) Dias sem Chuva'], bins=50, kde=True)
+plt.title('Distribuição do Número Médio de Dias sem Chuva')
+plt.xlabel('Dias sem Chuva')
+plt.ylabel('Frequência')
+plt.show()
+
+# Distribuição do risco de fogo
+plt.figure(figsize=(10, 6))
+sns.histplot(Dataframe1_limpo['(Média) Risco de Fogo'], bins=50, kde=True)
+plt.title('Distribuição do Risco Médio de Fogo')
+plt.xlabel('Risco de Fogo(%)')
+plt.ylabel('Frequência')
+plt.show()
+
+# Top 10 estados com maior risco de fogo
+Estados_risco_fogo = Dataframe1_limpo.groupby('Estado')['(Média) Risco de Fogo'].mean().nlargest(10).reset_index()
+
+plt.figure(figsize=(14, 6))
+sns.barplot(x='Estado', y='(Média) Risco de Fogo', data = Estados_risco_fogo, palette='hot')
+plt.title('Estados com Maiores Risco de Queimada')
+plt.xlabel('Estados')
+plt.xticks(rotation=25, fontsize=10)
+plt.ylabel('Risco em (%)')
+plt.show()
+
+# Top 10 estados com maior precipitação
+Estados_precipitacao = Dataframe1_limpo.groupby('Estado')['(Média) Preciptação'].mean().nlargest(10).reset_index()
+
+plt.figure(figsize=(12, 6))
+sns.barplot(x='(Média) Preciptação', y='Estado', data = Estados_precipitacao, palette='viridis')
+plt.title('Estados com Maiores Precipitações')
+plt.xlabel('Média de Precipitação')
+plt.ylabel('Estados')
+plt.show()
+
+#Top 10 Estados sem dias de chuva
+Estados_dias_sem_chuvas = Dataframe1_limpo.groupby('Estado')['(Média) Dias sem Chuva'].mean().nlargest(10).reset_index()
+
+plt.figure(figsize=(12, 6))
+sns.barplot(x='(Média) Dias sem Chuva', y='Estado', data = Estados_dias_sem_chuvas, palette='hot')
+plt.title('Estados com Mais Dias sem Chuvas')
+plt.xlabel('Média de Dias')
+plt.ylabel('Estados')
+plt.show()
+
+# Top 10 biomas com maior risco de fogo
+Biomas_risco = Dataframe1_limpo.groupby('Bioma')['(Média) Risco de Fogo'].mean().nlargest(10).reset_index()
+
+plt.figure(figsize=(14, 6))
+sns.barplot(x='Bioma', y='(Média) Risco de Fogo', data = Biomas_risco, palette='hot')
+plt.title('Biomas com Maiores Risco de Queimada')
+plt.xlabel('Biomas')
+plt.xticks(rotation=25, fontsize=10)
+plt.ylabel('Risco em (%)')
+plt.show()
+
+# Top 10 Biomas com maior precipitação
+Biomas_precipitacao = Dataframe1_limpo.groupby('Bioma')['(Média) Preciptação'].mean().nlargest(10).reset_index()
+
+plt.figure(figsize=(12, 6))
+sns.barplot(x='(Média) Preciptação', y='Bioma', data = Biomas_precipitacao, palette='viridis')
+plt.title('Biomas com Maiores Precipitações')
+plt.xlabel('Média de Precipitação')
+plt.ylabel('Biomas')
+plt.show()
+
+# Top 10 Biomas sem dias de chuva
+Biomas_dias_sem_chuvas = Dataframe1_limpo.groupby('Bioma')['(Média) Dias sem Chuva'].mean().nlargest(10).reset_index()
+
+plt.figure(figsize=(12, 6))
+sns.barplot(x='(Média) Dias sem Chuva', y='Bioma', data = Biomas_dias_sem_chuvas, palette='hot')
+plt.title('Biomas com Mais Dias sem Chuvas')
+plt.xlabel('Média de Dias')
+plt.ylabel('Biomas')
+plt.show()
+
+# Correlação entre todas as Variáveis
+plt.figure(figsize=(12, 8))
+correlacao_matrix = Dataframe1_limpo[['(Média) Preciptação', '(Média) Dias sem Chuva', '(Média) Risco de Fogo', '(Média) FRP']].corr()
+heatmap = sns.heatmap(correlacao_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
+plt.title('Mapa de Calor da Correlação entre Variáveis')
+
+
+heatmap.set_xlabel('Variáveis Independentes', fontsize=12)
+heatmap.set_ylabel('Variáveis Dependentes', fontsize=12)
+
+heatmap.set_xticklabels(['Precipitação', 'Dias Sem Chuva', 'Risco de Fogo', 'FRP'], rotation=0)
+heatmap.set_yticklabels(['Precipitação', 'Dias Sem Chuva', 'Risco de Fogo', 'FRP'], rotation=0)
+
+plt.show()
+
+# Correlação entre Dias Sem Chuva e Risco de Fogo
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='(Média) Dias sem Chuva', y='(Média) Risco de Fogo', data = Dataframe1_limpo, alpha=0.5)
+plt.title('Correlação entre Dias Sem Chuva e Risco de Fogo')
+plt.xlabel('Número de Dias Sem Chuva')
+plt.ylabel('Risco de Fogo (%)')
+
+# Cálculo da correlação de Pearson
+correlacao_dias_sem_chuva = pearsonr(Dataframe1_limpo['(Média) Dias sem Chuva'], Dataframe1_limpo['(Média) Risco de Fogo'])
+plt.show()
+
+print(f"Coeficiente de correlação entre Dias Sem Chuva e Risco de Fogo: {correlacao_dias_sem_chuva[0]:.3f}")
+
+# Correlação entre FRP e Risco de Fogo
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='(Média) FRP', y='(Média) Risco de Fogo', data = Dataframe1_limpo, alpha=1)
+plt.title('Correlação entre FRP e Risco de Fogo')
+plt.xlabel('FRP (Potência Radiativa de Fogo)')
+plt.ylabel('Risco de Fogo (%)')
+
+# Cálculo da correlação de Pearson
+correlacao_frp_risco = pearsonr(Dataframe1_limpo['(Média) FRP'], Dataframe1_limpo['(Média) Risco de Fogo'])
+plt.show()
+
+print(f"Coeficiente de correlação entre FRP e Risco de Fogo: {correlacao_frp_risco[0]:.3f}")
+
+# Correlação entre FRP e Dias Sem Chuva
+
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='(Média) FRP', y='(Média) Dias sem Chuva', data=Dataframe1_limpo, alpha=1)
+plt.title('Correlação entre FRP e Dias Sem Chuva')
+plt.xlabel('FRP (Potência Radiativa de Fogo)')
+plt.ylabel('Número de Dias Sem Chuva')
+
+# Cálculo da correlação de Pearson
+correlacao_frp_dias_sem_chuva = pearsonr(Dataframe1_limpo['(Média) FRP'], Dataframe1_limpo['(Média) Dias sem Chuva'])
+plt.show()
+
+print(f"Coeficiente de correlação entre FRP e Dias Sem Chuva: {correlacao_frp_dias_sem_chuva[0]:.3f}")
+
+# Definindo as variáveis independentes (Dias sem chuva, Precipitação, FRP)
+X = Dataframe1_limpo[['(Média) Dias sem Chuva', '(Média) Preciptação', '(Média) FRP']]
+
+# Variável dependente (Risco de fogo)
+y = Dataframe1_limpo['(Média) Risco de Fogo']
+
+# Adicionando uma constante para o modelo 
+X = sm.add_constant(X)
+
+# Ajustando o modelo de regressão linear
+modelo_rgl = sm.OLS(y, X).fit()
+
+# Resumo dos resultados
+print(modelo_rgl.summary())
+
+# Agrupar os dados por data, tirando a média das variáveis
+
+Dataframe1_agrupado = Dataframe1_limpo.groupby('Data').agg({
+    '(Média) Dias sem Chuva': 'mean',
+    '(Média) Preciptação': 'mean',
+    '(Média) Risco de Fogo': 'mean',
+    '(Média) FRP': 'mean'
+}).reset_index()
+
+# Definindo o índice como a coluna de data
+Dataframe1_agrupado.set_index('Data', inplace=True)
+
+
+print(Dataframe1_agrupado.head())
+
+# Identificando o índice onde os valores de '(Média) Risco de Fogo' são iguais a 0
+error_index = Dataframe1_agrupado[Dataframe1_agrupado['(Média) Risco de Fogo'] == 0].index[0]
+
+# Identificando a posição do índice
+error_posicao = Dataframe1_agrupado.index.get_loc(error_index)
+
+# Excluindo todas as linhas a partir do erro pegando até a linha anterior
+Dataframe1_limpado = Dataframe1_agrupado.iloc[:error_posicao]
+
+# Gráfico da Série temporal
+plt.figure(figsize=(10,6))
+plt.plot(Dataframe1_limpado['(Média) Risco de Fogo'])
+plt.title('Evolução do Risco de Fogo ao Longo do Tempo')
+plt.xlabel('Data')
+plt.ylabel('Média do Risco de Fogo')
+plt.show()
