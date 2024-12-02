@@ -1,0 +1,2 @@
+INFO:root:Dados carregados de data/bruto/Lucro Real.csv
+INFO:root:Pipeline concluído e dados salvos em data/processado/dados_limpos.csv
