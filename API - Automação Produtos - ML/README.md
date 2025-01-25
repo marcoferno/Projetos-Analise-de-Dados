@@ -1,3 +1,5 @@
+![Image](https://github.com/user-attachments/assets/9a345bef-db1a-4f75-bca1-23c2ea63aa02)
+
 <h1 align="left">Automatização de Anúncios Mercado Livre</h1>
 
 <p align="left">Este projeto é uma implementação em Google Apps Script, projetada para automatizar a extração e organização de dados de anúncios no Mercado Livre, utilizando as capacidades da API do Mercado Livre, o script realiza requisições para coletar informações essenciais, como preços, categorias, e detalhes de envio, e armazena essas informações diretamente em uma planilha do Google Sheets. Esta solução é ideal para otimizar processos de coleta de dados para análise e monitoramento de produtos online.</p>
