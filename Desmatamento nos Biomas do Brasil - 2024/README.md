@@ -1,3 +1,5 @@
+![Image](https://github.com/user-attachments/assets/f3055cd2-6541-4ab7-93e0-96fcc93d8e4b)
+
 <h1 align="left">Desmatamento nos Biomas do Brasil - 2024</h1>
 
 ###
