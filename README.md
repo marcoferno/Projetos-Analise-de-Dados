@@ -10,7 +10,7 @@ Minha missão é utilizar dados para descobrir informações valiosas que possam
 
 OBS: Os dados utilizados são provenientes de fontes públicas ou fictícias e o objetivo desses trabalhos é testar e aplicar na prática algoritmos, ferramentas e técnicas.
 
-Aqui você encontrará:
+## Aqui você encontrará:
 
 - Projetos em Python para análise de dados
 
