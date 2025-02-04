@@ -12,8 +12,6 @@ OBS: Os dados utilizados são provenientes de fontes públicas ou fictícias e o
 
 Aqui você encontrará:
 
-- Projetos de Python e R para análise de dados
+- Projetos em Python para análise de dados
 
-- Projetos de visualização de dados utilizando Tableau e Microsoft Power BI
-
-- Projetos relacionados a Sistemas de Gerenciamento de Bancos de Dados (SGBDs)
+- Projetos de visualização de dados utilizando com Microsoft Power BI
