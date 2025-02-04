@@ -6,7 +6,7 @@ Bem-vindo ao meu repositório de projetos para Análise de Dados!
 
 Aqui você encontrará uma seleção dos meus trabalhos mais recentes, desenvolvidos com o objetivo de solucionar problemas e extrair insights valiosos, neste repositório, apresento projetos que desenvolvi e estou desenvolvendo ao longo da minha jornada acadêmica e profissional. 
 
-Minha missão é utilizar dados para descobrir informações valiosas que possam guiar tomadas de decisão. Iniciei meus projetos com foco em análises de dados utilizando ferramentas de Business Intelligence, como Tableau e Microsoft Power BI, e atualmente estou explorando o campo de arquitetura e manuseio de Banco de Dados.
+Minha missão é utilizar dados para descobrir informações valiosas que possam guiar tomadas de decisão. Iniciei meus projetos com foco em análises de dados utilizando ferramentas de Business Intelligence.
 
 OBS: Os dados utilizados são provenientes de fontes públicas ou fictícias e o objetivo desses trabalhos é testar e aplicar na prática algoritmos, ferramentas e técnicas.
 
